@@ -1,245 +1,81 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soccer Scorebug</title>
+<!-- MATCH CLOCK DISPLAY -->
+<div class="timer" id="clock">45:00</div>
 
-<style>
-* {
-    box-sizing: border-box;
-}
+<!-- CLOCK CONTROLS -->
+<div class="controls">
+    <h3>Match Clock Settings</h3>
 
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: #153b20;
-    background-image:
-      linear-gradient(rgba(0,0,0,.2), rgba(0,0,0,.4)),
-      repeating-linear-gradient(
-        90deg,
-        #245b29 0px,
-        #245b29 100px,
-        #28632d 100px,
-        #28632d 200px
-      );
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 60px 15px;
-    font-family: Arial, Helvetica, sans-serif;
-}
+    <label>Minutes</label>
+    <input type="number" id="minutes" value="45" min="0">
 
-.scorebug {
-    display: flex;
-    align-items: stretch;
-    height: 76px;
-    width: min(850px, 100%);
-    color: white;
-    font-weight: 900;
-    filter: drop-shadow(0 5px 8px rgba(0,0,0,.5));
-}
+    <label>Seconds</label>
+    <input type="number" id="secondsInput" value="0" min="0" max="59">
 
-.team {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    flex: 1;
-    font-size: clamp(17px, 3vw, 30px);
-    letter-spacing: 1px;
-}
+    <br>
 
-.home {
-    background: #0646a5;
-    border-left: 5px solid white;
-}
+    <button onclick="setClock()">SET TIME</button>
+    <button onclick="startClock()">START</button>
+    <button onclick="pauseClock()">PAUSE</button>
+    <button onclick="resetClock()">RESET</button>
 
-.away {
-    background: #c50018;
-    border-right: 5px solid white;
-}
+    <br><br>
 
-.crest {
-    font-size: 30px;
-}
-
-.score {
-    background: #111820;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 170px;
-    font-size: clamp(25px, 4vw, 42px);
-    padding: 0 18px;
-    transform: skewX(-8deg);
-}
-
-.score span {
-    transform: skewX(8deg);
-}
-
-.timer {
-    background: #080b10;
-    min-width: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 25px;
-    padding: 0 12px;
-}
-
-.controls {
-    margin-top: 40px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    width: min(850px, 100%);
-    color: #111;
-}
-
-.controls h2 {
-    margin-top: 0;
-}
-
-.controls input {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0 12px;
-}
-
-button {
-    border: 0;
-    padding: 12px 18px;
-    margin: 4px;
-    border-radius: 6px;
-    background: #0755b5;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:hover {
-    opacity: .8;
-}
-
-@media(max-width: 500px) {
-    .scorebug {
-        height: 58px;
-    }
-    .team {
-        gap: 5px;
-    }
-    .crest {
-        font-size: 18px;
-    }
-    .score {
-        min-width: 90px;
-        padding: 0 8px;
-    }
-    .timer {
-        min-width: 75px;
-        font-size: 17px;
-    }
-}
-</style>
-</head>
-
-<body>
-
-<div>
-    <div class="scorebug">
-
-        <div class="team home">
-            <span class="crest" id="homeCrest">🦁</span>
-            <span id="homeName">CHE</span>
-        </div>
-
-        <div class="score">
-            <span>
-                <span id="homeScore">1</span>
-                -
-                <span id="awayScore">0</span>
-            </span>
-        </div>
-
-        <div class="team away">
-            <span id="awayName">LIV</span>
-            <span class="crest" id="awayCrest">🦅</span>
-        </div>
-
-        <div class="timer" id="clock">00:00</div>
-
-    </div>
-
-    <div class="controls">
-        <h2>Scorebug Controls</h2>
-
-        <label>Home Team</label>
-        <input id="homeInput" value="CHE">
-
-        <label>Away Team</label>
-        <input id="awayInput" value="LIV">
-
-        <button onclick="updateTeams()">Update Teams</button>
-
-        <h3>Score Controls</h3>
-        <button onclick="changeScore('home',1)">Home +1</button>
-        <button onclick="changeScore('home',-1)">Home -1</button>
-        <button onclick="changeScore('away',1)">Away +1</button>
-        <button onclick="changeScore('away',-1)">Away -1</button>
-
-        <h3>Match Clock</h3>
-        <button onclick="startClock()">START</button>
-        <button onclick="pauseClock()">PAUSE</button>
-        <button onclick="resetClock()">RESET</button>
-    </div>
+    <button onclick="setHalf(45)">1ST HALF</button>
+    <button onclick="setHalf(90)">2ND HALF</button>
 </div>
 
 <script>
-let homeScore = 1;
-let awayScore = 0;
-let seconds = 0;
+let remainingSeconds = 45 * 60;
+let startingSeconds = 45 * 60;
 let interval = null;
 
-function updateDisplay() {
-    document.getElementById("homeScore").textContent = homeScore;
-    document.getElementById("awayScore").textContent = awayScore;
-}
-
-function changeScore(team, amount) {
-    if (team === "home") {
-        homeScore = Math.max(0, homeScore + amount);
-    } else {
-        awayScore = Math.max(0, awayScore + amount);
-    }
-    updateDisplay();
-}
-
-function updateTeams() {
-    document.getElementById("homeName").textContent =
-        document.getElementById("homeInput").value.toUpperCase();
-
-    document.getElementById("awayName").textContent =
-        document.getElementById("awayInput").value.toUpperCase();
-}
-
 function updateClock() {
-    let minutes = Math.floor(seconds / 60);
-    let secs = seconds % 60;
+    let mins = Math.floor(remainingSeconds / 60);
+    let secs = remainingSeconds % 60;
 
     document.getElementById("clock").textContent =
-        String(minutes).padStart(2, "0") + ":" +
+        String(mins).padStart(2, "0") + ":" +
         String(secs).padStart(2, "0");
+
+    if (remainingSeconds === 0) {
+        pauseClock();
+    }
+}
+
+function setClock() {
+    pauseClock();
+
+    let mins = Math.max(0, parseInt(
+        document.getElementById("minutes").value
+    ) || 0);
+
+    let secs = parseInt(
+        document.getElementById("secondsInput").value
+    );
+
+    if (isNaN(secs)) secs = 0;
+
+    secs = Math.max(0, Math.min(59, secs));
+
+    remainingSeconds = (mins * 60) + secs;
+    startingSeconds = remainingSeconds;
+
+    updateClock();
 }
 
 function startClock() {
-    if (interval !== null) return;
+    if (interval !== null || remainingSeconds <= 0) return;
 
     interval = setInterval(() => {
-        seconds++;
+        remainingSeconds--;
         updateClock();
+
+        if (remainingSeconds <= 0) {
+            remainingSeconds = 0;
+            updateClock();
+            pauseClock();
+        }
     }, 1000);
 }
 
@@ -250,14 +86,21 @@ function pauseClock() {
 
 function resetClock() {
     pauseClock();
-    seconds = 0;
+    remainingSeconds = startingSeconds;
     updateClock();
 }
 
-updateDisplay();
+function setHalf(minutes) {
+    pauseClock();
+
+    remainingSeconds = minutes * 60;
+    startingSeconds = remainingSeconds;
+
+    document.getElementById("minutes").value = minutes;
+    document.getElementById("secondsInput").value = 0;
+
+    updateClock();
+}
+
 updateClock();
 </script>
-
-</body>
-</html>
-
