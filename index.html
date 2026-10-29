@@ -62,7 +62,10 @@ body {
 }
 
 .crest {
-    font-size: 30px;
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+    display: block;
 }
 
 .score {
@@ -128,16 +131,21 @@ button:hover {
     .scorebug {
         height: 58px;
     }
+
     .team {
         gap: 5px;
     }
+
     .crest {
-        font-size: 18px;
+        width: 25px;
+        height: 25px;
     }
+
     .score {
         min-width: 90px;
         padding: 0 8px;
     }
+
     .timer {
         min-width: 75px;
         font-size: 17px;
@@ -152,7 +160,9 @@ button:hover {
     <div class="scorebug">
 
         <div class="team home">
-            <span class="crest" id="homeCrest">🦁</span>
+            <img class="crest" id="homeCrest"
+                 src="https://placehold.co/100x100/0646a5/ffffff?text=H"
+                 alt="Home logo">
             <span id="homeName">CHE</span>
         </div>
 
@@ -166,7 +176,9 @@ button:hover {
 
         <div class="team away">
             <span id="awayName">LIV</span>
-            <span class="crest" id="awayCrest">🦅</span>
+            <img class="crest" id="awayCrest"
+                 src="https://placehold.co/100x100/c50018/ffffff?text=A"
+                 alt="Away logo">
         </div>
 
         <div class="timer" id="clock">45:00</div>
@@ -183,6 +195,14 @@ button:hover {
         <input id="awayInput" value="LIV">
 
         <button onclick="updateTeams()">Update Teams</button>
+
+        <h3>Team Logos</h3>
+
+        <label>Home Team Logo</label>
+        <input type="file" id="homeLogoInput" accept="image/*">
+
+        <label>Away Team Logo</label>
+        <input type="file" id="awayLogoInput" accept="image/*">
 
         <h3>Score Controls</h3>
         <button onclick="changeScore('home',1)">Home +1</button>
@@ -214,6 +234,7 @@ let seconds = 2700;
 let startingSeconds = 2700;
 let interval = null;
 
+// SCORE CONTROLS
 function updateDisplay() {
     document.getElementById("homeScore").textContent = homeScore;
     document.getElementById("awayScore").textContent = awayScore;
@@ -228,6 +249,7 @@ function changeScore(team, amount) {
     updateDisplay();
 }
 
+// TEAM NAMES
 function updateTeams() {
     document.getElementById("homeName").textContent =
         document.getElementById("homeInput").value.toUpperCase();
@@ -236,8 +258,35 @@ function updateTeams() {
         document.getElementById("awayInput").value.toUpperCase();
 }
 
-// CLOCK FUNCTIONS
+// TEAM LOGOS
+function uploadLogo(inputId, imageId) {
+    const input = document.getElementById(inputId);
 
+    input.addEventListener("change", function() {
+        const file = this.files[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please select an image file.");
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            document.getElementById(imageId).src =
+                event.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+uploadLogo("homeLogoInput", "homeCrest");
+uploadLogo("awayLogoInput", "awayCrest");
+
+// COUNTDOWN CLOCK
 function updateClock() {
     let minutes = Math.floor(seconds / 60);
     let secs = seconds % 60;
@@ -294,6 +343,7 @@ function resetClock() {
     updateClock();
 }
 
+// INITIAL DISPLAY
 updateDisplay();
 updateClock();
 
