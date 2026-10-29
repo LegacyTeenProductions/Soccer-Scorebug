@@ -169,7 +169,7 @@ button:hover {
             <span class="crest" id="awayCrest">🦅</span>
         </div>
 
-        <div class="timer" id="clock">00:00</div>
+        <div class="timer" id="clock">45:00</div>
 
     </div>
 
@@ -191,6 +191,14 @@ button:hover {
         <button onclick="changeScore('away',-1)">Away -1</button>
 
         <h3>Match Clock</h3>
+
+        <label>Minutes</label>
+        <input type="number" id="minutes" value="45" min="0">
+
+        <label>Seconds</label>
+        <input type="number" id="secondsInput" value="0" min="0" max="59">
+
+        <button onclick="setClock()">SET TIME</button>
         <button onclick="startClock()">START</button>
         <button onclick="pauseClock()">PAUSE</button>
         <button onclick="resetClock()">RESET</button>
@@ -200,7 +208,10 @@ button:hover {
 <script>
 let homeScore = 1;
 let awayScore = 0;
-let seconds = 0;
+
+// COUNTDOWN CLOCK
+let seconds = 2700;
+let startingSeconds = 2700;
 let interval = null;
 
 function updateDisplay() {
@@ -225,6 +236,8 @@ function updateTeams() {
         document.getElementById("awayInput").value.toUpperCase();
 }
 
+// CLOCK FUNCTIONS
+
 function updateClock() {
     let minutes = Math.floor(seconds / 60);
     let secs = seconds % 60;
@@ -234,12 +247,39 @@ function updateClock() {
         String(secs).padStart(2, "0");
 }
 
+function setClock() {
+    pauseClock();
+
+    let mins = Math.max(0, parseInt(
+        document.getElementById("minutes").value
+    ) || 0);
+
+    let secs = parseInt(
+        document.getElementById("secondsInput").value
+    );
+
+    if (isNaN(secs)) secs = 0;
+
+    secs = Math.max(0, Math.min(59, secs));
+
+    seconds = (mins * 60) + secs;
+    startingSeconds = seconds;
+
+    updateClock();
+}
+
 function startClock() {
-    if (interval !== null) return;
+    if (interval !== null || seconds <= 0) return;
 
     interval = setInterval(() => {
-        seconds++;
+        seconds--;
         updateClock();
+
+        if (seconds <= 0) {
+            seconds = 0;
+            updateClock();
+            pauseClock();
+        }
     }, 1000);
 }
 
@@ -250,12 +290,13 @@ function pauseClock() {
 
 function resetClock() {
     pauseClock();
-    seconds = 0;
+    seconds = startingSeconds;
     updateClock();
 }
 
 updateDisplay();
 updateClock();
+
 </script>
 
 </body>
